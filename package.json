@@ -1,6 +1,6 @@
 {
   "name": "data-range",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "get the closest or next value from a data range",
   "homepage": "https://github.com/kirstein/data-range",
   "repository": {
