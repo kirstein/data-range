@@ -1,5 +1,5 @@
 (function() {
-  var chainable, getSortedKeys, _;
+  var chainable, curriedGet, getSortedKeys, _;
 
   _ = require('lodash');
 
@@ -15,6 +15,16 @@
       return a - b;
     }).value();
   };
+
+  curriedGet = _.curry(function(findFn, predicate) {
+    var key, keys;
+    if (!_.isFunction(predicate)) {
+      throw new Error('Predicate expected');
+    }
+    keys = getSortedKeys(this.values);
+    key = findFn(keys, predicate);
+    return this.values[key];
+  });
 
   exports.values = {};
 
@@ -43,20 +53,26 @@
     return this.values[key] = value;
   });
 
-  exports.getNext = function(val) {
-    return this.get(function(item, index, arr) {
-      return arr[index] <= item && item >= val;
+  exports.getSmallest = function() {
+    return this.get(function(item) {
+      return item;
     });
   };
 
-  exports.get = function(predicate) {
-    var key, keys;
-    if (!_.isFunction(predicate)) {
-      throw new Error('Predicate expected');
-    }
-    keys = getSortedKeys(this.values);
-    key = _.find(keys, predicate);
-    return this.values[key];
+  exports.getLargest = function() {
+    return this.getRight(function(item) {
+      return item;
+    });
   };
+
+  exports.getNext = function(val) {
+    return this.get(function(item, index, arr) {
+      return arr[index] <= item && item > val;
+    });
+  };
+
+  exports.get = curriedGet(_.find);
+
+  exports.getRight = curriedGet(_.findLast);
 
 }).call(this);

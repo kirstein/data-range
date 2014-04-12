@@ -1,7 +1,10 @@
 mod    = require "#{process.cwd()}/src/data-range"
-assert = require('assert')
+_      = require 'lodash'
+assert = require 'assert'
 
 describe 'data-range', ->
+  afterEach -> mod.clear()
+
   it 'should exist', -> mod.should.be.ok
 
   describe '#set', ->
@@ -21,10 +24,15 @@ describe 'data-range', ->
       mod.add().should.eql mod
 
   describe '#clear', ->
-    it 'should wipe all the values while keeping the reference', ->
+    it 'should keep the reference', ->
       ref = mod.values
       mod.clear()
       mod.values.should.equal ref
+
+    it 'should clear all the values', ->
+      mod.add 0, 'key1'
+      mod.clear()
+      _.isEmpty(mod.values).should.eql true
 
     it 'should be chainable', ->
       mod.clear().should.eql mod
@@ -38,8 +46,6 @@ describe 'data-range', ->
       mod.extend().should.eql mod
 
   describe '#getNext', ->
-    beforeEach -> mod.clear()
-
     it 'should return the next value', ->
       mod.add 0, 'key1'
       mod.add 2, 'key2'
@@ -50,10 +56,10 @@ describe 'data-range', ->
       mod.add .4, 'key2'
       mod.getNext(.3).should.eql 'key2'
 
-    it 'should return the same value if next is the same', ->
+    it 'should return the not same value if next is the same', ->
       mod.add 2, 'key2'
       mod.add 0, 'key1'
-      mod.getNext(0).should.eql 'key1'
+      mod.getNext(0).should.eql 'key2'
 
     it 'should return undefined if the value does not exist', ->
       mod.add 2, 'key1'
@@ -65,9 +71,19 @@ describe 'data-range', ->
       mod.add 10, 'key10'
       mod.getNext(1.1).should.eql 'key5'
 
-  describe '#get', ->
-    beforeEach -> mod.clear()
+  describe '#getSmallest', ->
+    it 'should get the smallest value', ->
+      mod.add 1, 'key1'
+      mod.add 0, 'key0'
+      mod.getSmallest().should.eql 'key0'
 
+  describe '#getBiggest', ->
+    it 'should return the biggest value', ->
+      mod.add 1, 'key1'
+      mod.add 0, 'key0'
+      mod.getLargest().should.eql 'key1'
+
+  describe '#get', ->
     it 'should throw when no predicate is given', ->
       (-> mod.get null).should.throw 'Predicate expected'
 
@@ -76,3 +92,13 @@ describe 'data-range', ->
       mod.add 0, 'key1'
       res = mod.get (item, index, arr) -> arr[index] >= item and item <= 1
       res.should.eql 'key1'
+
+  describe '#getRight', ->
+    it 'should throw when no predicate is given', ->
+      (-> mod.getRight null).should.throw 'Predicate expected'
+
+    it 'should work with custom predicates', ->
+      mod.add 2, 'key2'
+      mod.add 0, 'key1'
+      res = mod.getRight (item, index, arr) -> arr[index] <= item and item >= 1
+      res.should.eql 'key2'
