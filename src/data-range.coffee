@@ -31,7 +31,8 @@ exports.set = chainable (data) ->
   @extend data
 
 # Clear all the values while keeping the reference
-exports.clear = chainable -> delete @values[key] for key, val of @values
+exports.clear = chainable ->
+  delete @values[key] for key, val of @values
 
 # Assign all values from inputs to values
 # Will override all duplicates keys with the new args
